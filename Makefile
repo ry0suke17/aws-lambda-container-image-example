@@ -31,5 +31,8 @@ aws/ecr/login: aws/profle/check
 terraform/plan: aws/profle/check
 	terraform-v1.6.1 -chdir=./terraform/aws plan
 
-terraform/plan: aws/profle/check
+terraform/apply: aws/profle/check
 	terraform-v1.6.1 -chdir=./terraform/aws apply
+
+terraform/destroy: aws/profle/check
+	terraform-v1.6.1 -chdir=./terraform/aws destroy
