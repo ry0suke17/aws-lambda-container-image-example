@@ -29,5 +29,4 @@ resource "aws_lambda_function" "hello_func" {
   role          = aws_iam_role.iam_for_lambda.arn
   package_type = "Image"
   image_uri = "${aws_ecr_repository.hello_repo.repository_url}:latest"
-  runtime = "provided.al2"
 }
