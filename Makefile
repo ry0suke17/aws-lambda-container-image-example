@@ -3,9 +3,14 @@ AWS_REGION=ap-northeast-1
 AWS_ACCOUNT_ID=your-account-id
 AWS_ECR_REPO=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 AWS_LAMBDA_FUNC_NAME=hello-func
+AWS_LAMBDA_FUNC_NAME_ZIP=hello-func-zip
 
 DOCKER_IMAGE_NAME=hello
 DOCKER_BUILD_PLATFORM=linux/arm64
+
+go/build:
+	GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o ./terraform/aws/bootstrap ./cmd/main.go
+	zip ./terraform/aws/bootstrap.zip ./terraform/aws/bootstrap
 
 docker/image/build:
 	docker build --platform ${DOCKER_BUILD_PLATFORM} -t ${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME} .
@@ -29,9 +34,13 @@ aws/profle/check:
 aws/ecr/login: aws/profle/check
 	aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
-aws/lambda/func/update: aws/profle/check
+aws/lambda/func/update/container: aws/profle/check
 	aws lambda update-function-code --function-name ${AWS_LAMBDA_FUNC_NAME} --publish --image-uri ${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME}:latest | jq -r '.Version'
 	aws lambda update-alias --function-name ${AWS_LAMBDA_FUNC_NAME} --name current --function-version `aws lambda list-versions-by-function --function-name ${AWS_LAMBDA_FUNC_NAME} | jq -r '.Versions[-1].Version'` | jq -r
+
+aws/lambda/func/update/zip: go/build aws/profle/check
+	aws lambda update-function-code --function-name ${AWS_LAMBDA_FUNC_NAME_ZIP} --publish --zip-file fileb://./terraform/aws/bootstrap.zip | jq -r
+	aws lambda update-alias --function-name ${AWS_LAMBDA_FUNC_NAME_ZIP} --name current --function-version `aws lambda list-versions-by-function --function-name ${AWS_LAMBDA_FUNC_NAME_ZIP} | jq -r '.Versions[-1].Version'` | jq -r
 
 terraform/plan: aws/profle/check
 	terraform-v1.6.1 -chdir=./terraform/aws plan
