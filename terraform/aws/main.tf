@@ -30,3 +30,12 @@ resource "aws_lambda_function" "hello_func" {
   package_type = "Image"
   image_uri = "${aws_ecr_repository.hello_repo.repository_url}:latest"
 }
+
+resource "aws_lambda_function" "hello_func_zip" {
+  function_name = "hello-func-zip"
+  role          = aws_iam_role.iam_for_lambda.arn
+  package_type = "Zip"
+  filename = "bootstrap.zip"
+  runtime = "provided.al2"
+  handler = "bootstrap"
+}
