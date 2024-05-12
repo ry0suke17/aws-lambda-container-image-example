@@ -10,7 +10,7 @@ DOCKER_BUILD_PLATFORM=linux/arm64
 
 go/build:
 	GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o ./terraform/aws/bootstrap ./cmd/main.go
-	zip ./terraform/aws/bootstrap.zip ./terraform/aws/bootstrap
+	zip -j ./terraform/aws/bootstrap.zip ./terraform/aws/bootstrap
 
 docker/image/build:
 	docker build --platform ${DOCKER_BUILD_PLATFORM} -t ${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME} .
