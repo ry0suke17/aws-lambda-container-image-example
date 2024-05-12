@@ -2,6 +2,7 @@ AWS_PROFILE_NAME=your-profile-name
 AWS_REGION=ap-northeast-1
 AWS_ACCOUNT_ID=your-account-id
 AWS_ECR_REPO=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+AWS_LAMBDA_FUNC_NAME=hello-func
 
 DOCKER_IMAGE_NAME=hello
 DOCKER_BUILD_PLATFORM=linux/arm64
@@ -19,14 +20,18 @@ docker/run:
 		--entrypoint /usr/local/bin/aws-lambda-rie \
 		${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME} ./main
 
-docker/push: aws/ecr/login 
+docker/push: docker/image/build aws/ecr/login 
 	docker push ${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME}
 
 aws/profle/check:
-	 if [ `aws configure list | grep profile | grep ${AWS_PROFILE_NAME} | wc -l` -eq 0 ]; then >&2 echo "ERROR: profile is not ${AWS_PROFILE_NAME}"; exit 1; fi
+	 if [ `aws configure list | grep "profile                  ${AWS_PROFILE_NAME}" | wc -l` -eq 0 ]; then >&2 echo "ERROR: profile is not ${AWS_PROFILE_NAME}"; exit 1; fi
 
 aws/ecr/login: aws/profle/check
 	aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+
+aws/lambda/func/update: aws/profle/check
+	aws lambda update-function-code --function-name ${AWS_LAMBDA_FUNC_NAME} --publish --image-uri ${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME}:latest | jq -r '.Version'
+	aws lambda update-alias --function-name ${AWS_LAMBDA_FUNC_NAME} --name current --function-version `aws lambda list-versions-by-function --function-name ${AWS_LAMBDA_FUNC_NAME} | jq -r '.Versions[-1].Version'` | jq -r
 
 terraform/plan: aws/profle/check
 	terraform-v1.6.1 -chdir=./terraform/aws plan
