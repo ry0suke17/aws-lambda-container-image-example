@@ -2,7 +2,7 @@ AWS_PROFILE_NAME=your-profile-name
 AWS_REGION=ap-northeast-1
 AWS_ACCOUNT_ID=your-account-id
 AWS_ECR_REPO=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-AWS_LAMBDA_FUNC_NAME_CONTAINER=hello-func
+AWS_LAMBDA_FUNC_NAME_CONTAINER=hello-func-container
 AWS_LAMBDA_FUNC_NAME_ZIP=hello-func-zip
 
 DOCKER_IMAGE_NAME=hello
