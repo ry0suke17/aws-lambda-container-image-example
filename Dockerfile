@@ -8,6 +8,10 @@ COPY ./cmd/main.go .
 RUN GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o main main.go
 
 # Copy artifacts to a clean image
-FROM public.ecr.aws/lambda/provided:al2
+# Select image
+FROM gcr.io/distroless/static:latest
+# FROM gcr.io/distroless/base:latest
+# FROM public.ecr.aws/lambda/provided:al2
+
 COPY --from=build /hello/main ./main
 ENTRYPOINT [ "./main" ]
