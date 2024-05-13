@@ -23,7 +23,15 @@ docker/image/build:
 docker/run:
 	docker run -d -p 9000:8080 \
 		--entrypoint /usr/local/bin/aws-lambda-rie \
-		${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME} ./main
+		${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME}:latest ./main
+
+# download the emulator before run.
+#
+# ref. https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/go-image.html#go-image-clients
+docker/run-with-emulator:
+	docker run -d -v ~/.aws-lambda-rie:/aws-lambda -p 9000:8080 \
+		--entrypoint /aws-lambda/aws-lambda-rie \
+		${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME}:latest ./main
 
 docker/push: docker/image/build aws/ecr/login 
 	docker push ${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME}
