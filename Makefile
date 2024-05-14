@@ -21,7 +21,7 @@ docker/image/build:
 # or
 # curl "http://localhost:9000/2015-03-31/functions/function/invocations" -v -d '{"payload":"hello world!"}'
 docker/run:
-	docker run -d -p 9000:8080 \
+	docker run -it --rm -p 9000:8080 \
 		--entrypoint /usr/local/bin/aws-lambda-rie \
 		${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME}:latest ./main
 
@@ -29,7 +29,7 @@ docker/run:
 #
 # ref. https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/go-image.html#go-image-clients
 docker/run-with-emulator:
-	docker run -d -v ~/.aws-lambda-rie:/aws-lambda -p 9000:8080 \
+	docker run -it --rm -v ~/.aws-lambda-rie:/aws-lambda -p 9000:8080 \
 		--entrypoint /aws-lambda/aws-lambda-rie \
 		${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME}:latest ./main
 
