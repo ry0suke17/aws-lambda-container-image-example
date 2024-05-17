@@ -4,22 +4,15 @@ WORKDIR /app
 COPY go.mod go.sum ./
 # Build with optional lambda.norpc tag
 COPY ./cmd/chromedp/main.go .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -tags lambda.norpc -o main main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o main main.go
 
-# headless-chromium can only be started if x86_64 is out.
-# but busybox doesn't work well with wget on x86-64.
-# FROM busybox:latest as download
-# WORKDIR /usr/local/bin
-# RUN wget https://github.com/adieuadieu/serverless-chrome/releases/download/v1.0.0-55/stable-headless-chromium-amazonlinux-2017-03.zip -O - | busybox unzip -
-# RUN chmod 755 headless-chromium
+# Dwonload headless-chromium
+FROM alpine:3.19.1 as chrome
+RUN wget https://github.com/adieuadieu/serverless-chrome/releases/download/v1.0.0-55/stable-headless-chromium-amazonlinux-2017-03.zip -O - | busybox unzip -
+RUN chmod 755 headless-chromium
 
 # Copy artifacts to a clean image
-# Select image
 FROM public.ecr.aws/lambda/provided:al2
-RUN yum install -y unzip \
-  && mkdir -p /opt/bin \
-  && curl -sL https://github.com/adieuadieu/serverless-chrome/releases/download/v1.0.0-55/stable-headless-chromium-amazonlinux-2017-03.zip -o headless-chromium.zip \
-  && unzip headless-chromium.zip -d /opt/bin \
-  && rm headless-chromium.zip
-COPY --from=build /app/main ./main
-ENTRYPOINT [ "./main" ]
+COPY --from=build /app/main /main
+COPY --from=chrome /headless-chromium /opt/bin/headless-chromium
+ENTRYPOINT [ "/main" ]

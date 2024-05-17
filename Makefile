@@ -8,7 +8,7 @@ AWS_LAMBDA_FUNC_NAME_ZIP=hello-func-zip
 DOCKER_IMAGE_NAME=hello
 DOCKER_IMAGE_NAME_CHROMEDP=chromedp
 DOCKER_BUILD_PLATFORM=linux/arm64
-DOCKER_BUILD_PLATFORM_CHROMEDP=linux/x86_64
+DOCKER_BUILD_PLATFORM_CHROMEDP=linux/amd64
 
 go/build:
 	GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o ./terraform/aws/bootstrap ./cmd/main.go && \
@@ -39,7 +39,7 @@ docker/run-with-emulator:
 docker/run/chromedp: docker/image/build
 	docker run --platform ${DOCKER_BUILD_PLATFORM_CHROMEDP} -it --rm -p 9000:8080 \
 		--entrypoint /usr/local/bin/aws-lambda-rie \
-		${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME_CHROMEDP}:latest ./main
+		${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME_CHROMEDP}:latest /main
 
 docker/push: docker/image/build aws/ecr/login 
 	docker push ${AWS_ECR_REPO}/${DOCKER_IMAGE_NAME}
